@@ -24,17 +24,62 @@ public class TaxCalculator
 
     public decimal TaxFreeAllowance(Employee employee)
     {
-        var result = 0M;
-        if (employee.AnnualGrossSalary <= 100000)
+        return Math.Round(GetTaxFreeAllowance(employee.AnnualGrossSalary).Calculate() / MonthsInYear, 2);
+    }
+
+    private ITaxFreeAllowance GetTaxFreeAllowance(decimal annualGrossSalary)
+    {
+        ITaxFreeAllowance result;
+        switch (annualGrossSalary)
         {
-            result = 11000M;
-        }
-        else if (employee.AnnualGrossSalary <= 122000)
-        {
-            result = 11000 - (employee.AnnualGrossSalary - 100000) / 2;
+            case <= 100000:
+                result = new StandardTaxFreeAllowance();
+                break;
+            case <= 122000:
+                result = new ReducedTaxFreeAllowance(annualGrossSalary);
+                break;
+            default:
+                result = new NoTaxFreeAllowance();
+                break;
         }
 
-        return Math.Round(result / MonthsInYear, 2);
+        return result;
+    }
+}
+
+public interface ITaxFreeAllowance
+{
+    decimal Calculate();
+}
+
+public class NoTaxFreeAllowance : ITaxFreeAllowance
+{
+    public decimal Calculate()
+    {
+        return 0;
+    }
+}
+
+public class StandardTaxFreeAllowance : ITaxFreeAllowance
+{
+    public decimal Calculate()
+    {
+        return 11000;
+    }
+}
+
+public class ReducedTaxFreeAllowance : ITaxFreeAllowance
+{
+    private readonly decimal salary;
+
+    public ReducedTaxFreeAllowance(decimal salary)
+    {
+        this.salary = salary;
+    }
+
+    public decimal Calculate()
+    {
+        return 11000 - (salary - 100000) / 2;
     }
 }
 
