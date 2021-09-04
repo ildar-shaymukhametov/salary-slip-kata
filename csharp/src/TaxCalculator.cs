@@ -9,6 +9,11 @@ public class TaxCalculator
 
     public decimal Contributions(Employee employee)
     {
-        return 0;
+        var result = 0M;
+        if (employee.AnnualGrossSalary > 8060)
+        {
+            result += (employee.AnnualGrossSalary - 8060) * 0.12M / MonthsInYear;
+        }
+        return result;
     }
 }
