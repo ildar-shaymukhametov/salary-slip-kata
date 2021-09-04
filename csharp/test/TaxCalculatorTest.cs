@@ -13,6 +13,16 @@ namespace test
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(5000)]
+        [InlineData(8060)]
+        public void No_contributions(decimal annualGrossSalary)
+        {
+            const decimal expected = 0M;
+            var actual = new TaxCalculator().Contributions(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
         private static Employee CreateEmployee(decimal annualGrossSalary)
         {
             return new Employee(1, "Foo", annualGrossSalary);

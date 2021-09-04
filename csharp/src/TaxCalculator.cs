@@ -6,4 +6,9 @@ public class TaxCalculator
     {
         return Math.Round(employee.AnnualGrossSalary / MonthsInYear, 2);
     }
+
+    public decimal Contributions(Employee employee)
+    {
+        return 0;
+    }
 }
