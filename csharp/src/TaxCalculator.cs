@@ -10,10 +10,18 @@ public class TaxCalculator
     public decimal Contributions(Employee employee)
     {
         var result = 0M;
-        if (employee.AnnualGrossSalary > 8060)
-        {
-            result += (employee.AnnualGrossSalary - 8060) * 0.12M / MonthsInYear;
-        }
-        return result;
+        var higher = Subtract(employee.AnnualGrossSalary, 43000);
+        result += higher * 0.02M / MonthsInYear;
+
+        var basic = Subtract(employee.AnnualGrossSalary - higher, 8060);
+        result += basic * 0.12M / MonthsInYear;
+
+        return Math.Round(result, 2);
+    }
+
+    private static decimal Subtract(decimal left, decimal right)
+    {
+        var result = left - right;
+        return result >= 0 ? result : 0;
     }
 }
