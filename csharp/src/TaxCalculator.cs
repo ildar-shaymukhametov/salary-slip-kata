@@ -21,6 +21,21 @@ public class TaxCalculator
             new HigherContributions()
         };
     }
+
+    public decimal TaxFreeAllowance(Employee employee)
+    {
+        var result = 0M;
+        if (employee.AnnualGrossSalary <= 100000)
+        {
+            result = 11000M;
+        }
+        else if (employee.AnnualGrossSalary <= 122000)
+        {
+            result = 11000 - (employee.AnnualGrossSalary - 100000) / 2;
+        }
+
+        return Math.Round(result / MonthsInYear, 2);
+    }
 }
 
 public interface IContributions

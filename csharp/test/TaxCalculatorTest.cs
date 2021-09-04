@@ -43,6 +43,33 @@ namespace test
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(5000, 916.67)]
+        [InlineData(100000, 916.67)]
+        public void Tax_free_allowance(decimal annualGrossSalary, decimal expected)
+        {
+            var actual = new TaxCalculator().TaxFreeAllowance(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(105500, 687.50)]
+        [InlineData(111000, 458.33)]
+        public void Reduced_tax_free_allowance(decimal annualGrossSalary, decimal expected)
+        {
+            var actual = new TaxCalculator().TaxFreeAllowance(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(122000, 0)]
+        [InlineData(160000, 0)]
+        public void No_tax_free_allowance(decimal annualGrossSalary, decimal expected)
+        {
+            var actual = new TaxCalculator().TaxFreeAllowance(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
         private static Employee CreateEmployee(decimal annualGrossSalary)
         {
             return new Employee(1, "Foo", annualGrossSalary);
