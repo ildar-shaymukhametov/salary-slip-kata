@@ -45,6 +45,16 @@ public class TaxCalculator
 
         return result;
     }
+
+    public decimal TaxableIncome(Employee employee)
+    {
+        var taxFreeAllowance = GetTaxFreeAllowance(employee.AnnualGrossSalary).Calculate();
+        if (employee.AnnualGrossSalary <= taxFreeAllowance)
+        {
+            return 0;
+        }
+        return Math.Round((employee.AnnualGrossSalary - taxFreeAllowance) / MonthsInYear, 2);
+    }
 }
 
 public interface ITaxFreeAllowance

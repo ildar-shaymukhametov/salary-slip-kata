@@ -70,6 +70,25 @@ namespace test
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(5000, 0)]
+        [InlineData(11000, 0)]
+        public void No_taxable_income(decimal annualGrossSalary, decimal expected)
+        {
+            var actual = new TaxCalculator().TaxableIncome(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(12000, 83.33)]
+        [InlineData(100000, 7416.67)]
+        [InlineData(160000, 13333.33)]
+        public void Taxable_income(decimal annualGrossSalary, decimal expected)
+        {
+            var actual = new TaxCalculator().TaxableIncome(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
         private static Employee CreateEmployee(decimal annualGrossSalary)
         {
             return new Employee(1, "Foo", annualGrossSalary);
