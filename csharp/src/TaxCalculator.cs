@@ -9,19 +9,62 @@ public class TaxCalculator
 
     public decimal Contributions(Employee employee)
     {
-        var result = 0M;
-        var higher = Subtract(employee.AnnualGrossSalary, 43000);
-        result += higher * 0.02M / MonthsInYear;
-
-        var basic = Subtract(employee.AnnualGrossSalary - higher, 8060);
-        result += basic * 0.12M / MonthsInYear;
-
-        return Math.Round(result, 2);
+        var result = GetContributions().Sum(x => x.Calculate(employee.AnnualGrossSalary));
+        return Math.Round(result / MonthsInYear, 2);
     }
 
-    private static decimal Subtract(decimal left, decimal right)
+    private static List<IContributions> GetContributions()
     {
-        var result = left - right;
-        return result >= 0 ? result : 0;
+        return new List<IContributions>
+        {
+            new BasicContributions(),
+            new HigherContributions()
+        };
+    }
+}
+
+public interface IContributions
+{
+    decimal Calculate(decimal salary);
+}
+
+public class BasicContributions : IContributions
+{
+    const decimal LowerThreshold = 8060M;
+    const decimal UpperThreshold = 43000M;
+    const decimal Rate = 0.12M;
+
+    public decimal Calculate(decimal salary)
+    {
+        if (salary <= LowerThreshold)
+        {
+            return 0;
+        }
+
+        return GetTaxableAmount(salary) * Rate;
+    }
+
+    private static decimal GetTaxableAmount(decimal salary)
+    {
+        var higher = salary - UpperThreshold;
+        higher = higher < 0 ? 0 : higher;
+
+        return salary - higher - LowerThreshold;
+    }
+}
+
+public class HigherContributions : IContributions
+{
+    const decimal Threshold = 43000M;
+    const decimal Rate = 0.02M;
+
+    public decimal Calculate(decimal salary)
+    {
+        if (salary <= Threshold)
+        {
+            return 0;
+        }
+
+        return (salary - Threshold) * Rate;
     }
 }
