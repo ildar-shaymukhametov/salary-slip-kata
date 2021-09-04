@@ -26,6 +26,7 @@ namespace test
         [Theory]
         [InlineData(9060, 10)]
         [InlineData(40000, 319.4)]
+        [InlineData(43000, 349.4)]
         public void Basic_contributions(decimal annualGrossSalary, decimal expected)
         {
             var actual = new TaxCalculator().Contributions(CreateEmployee(annualGrossSalary));
