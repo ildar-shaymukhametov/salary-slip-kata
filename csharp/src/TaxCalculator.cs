@@ -58,7 +58,7 @@ public class TaxCalculator
 
     public decimal TaxPayable(Employee employee)
     {
-        var result = GetRateBands().Sum(x => x.Calculate(employee.AnnualGrossSalary));
+        var result = GetRateBands().Sum(x => x.Calculate(new Salary(employee.AnnualGrossSalary)));
         return Math.Round(result / MonthsInYear, 2);
     }
 
@@ -75,88 +75,55 @@ public class TaxCalculator
 
 public interface IRateBand
 {
-    decimal Calculate(decimal salary);
+    decimal Calculate(Salary salary);
 }
 
-public class BasicRateBand : IRateBand
+public abstract class RateBand : IRateBand
 {
-    const decimal LowerThreshold = 11000M;
-    const decimal UpperThreshold = 43000M;
-    const decimal Rate = 0.2M;
+    protected abstract decimal LowerLimit { get; }
+    protected abstract decimal? HigherLimit { get; }
+    protected abstract decimal Rate { get; }
 
-    public decimal Calculate(decimal salary)
+    public virtual decimal Calculate(Salary salary)
     {
-        if (salary <= LowerThreshold)
+        var result = 0M;
+        if (salary.Value > HigherLimit)
         {
-            return 0;
+            result = HigherLimit.Value - LowerLimit;
+        }
+        else if (salary.Value > LowerLimit)
+        {
+            result = salary.Value - LowerLimit;
         }
 
-        return GetTaxableAmount(salary) * Rate;
-    }
-
-    private static decimal GetTaxableAmount(decimal salary)
-    {
-        var higher = salary - UpperThreshold;
-        higher = higher < 0 ? 0 : higher;
-
-        return salary - higher - LowerThreshold;
+        return result * Rate;
     }
 }
 
-public class HigherRateBand : IRateBand
+public class BasicRateBand : RateBand
 {
-    const decimal LowerThreshold = 43000M;
-    const decimal UpperThreshold = 150000M;
-    const decimal Rate = 0.4M;
+    protected override decimal LowerLimit => 11000;
+    protected override decimal? HigherLimit => 43000;
+    protected override decimal Rate => 0.2M;
+}
 
-    public decimal Calculate(decimal salary)
+public class HigherRateBand : RateBand
+{
+    protected override decimal LowerLimit => 43000;
+    protected override decimal? HigherLimit => 150000;
+    protected override decimal Rate => 0.4M;
+
+    public override decimal Calculate(Salary salary)
     {
-        if (salary <= LowerThreshold)
-        {
-            return 0;
-        }
-
-        return GetTaxableAmount(salary) * Rate;
-    }
-
-    private static decimal GetTaxableAmount(decimal salary)
-    {
-        var higher = salary - UpperThreshold;
-        higher = higher < 0 ? 0 : higher;
-
-        return salary - higher - LowerThreshold + GetAdditionalExcess(salary);
-    }
-
-    private static decimal GetAdditionalExcess(decimal salary)
-    {
-        if (salary <= 100000)
-        {
-            return 0;
-        }
-        var result = (salary - 100000) / 2;
-        return result < 11000 ? result : 11000;
+        return base.Calculate(salary) + salary.GetPersonalAllowanceExcess() * Rate;
     }
 }
 
-public class AdditionalRateBand : IRateBand
+public class AdditionalRateBand : RateBand
 {
-    const decimal Threshold = 150000M;
-    const decimal Rate = 0.45M;
-
-    public decimal Calculate(decimal salary)
-    {
-        if (salary <= Threshold)
-        {
-            return 0;
-        }
-
-        return GetTaxableAmount(salary) * Rate;
-    }
-
-    private static decimal GetTaxableAmount(decimal salary)
-    {
-        return salary - Threshold;
-    }
+    protected override decimal LowerLimit => 150000;
+    protected override decimal? HigherLimit => null;
+    protected override decimal Rate => 0.45M;
 }
 
 public interface ITaxFreeAllowance
@@ -238,5 +205,25 @@ public class HigherContributions : IContributions
         }
 
         return (salary - Threshold) * Rate;
+    }
+}
+
+public class Salary
+{
+    public decimal Value { get; }
+
+    public Salary(decimal Value)
+    {
+        this.Value = Value;
+    }
+
+    public decimal GetPersonalAllowanceExcess()
+    {
+        if (Value <= 100000)
+        {
+            return 0;
+        }
+        var result = (Value - 100000) / 2;
+        return result < 11000 ? result : 11000;
     }
 }
