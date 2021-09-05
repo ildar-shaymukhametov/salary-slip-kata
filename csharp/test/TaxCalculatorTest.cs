@@ -89,6 +89,27 @@ namespace test
             Assert.Equal(expected, actual);
         }
 
+        [Theory]
+        [InlineData(5000, 0)]
+        [InlineData(11000, 0)]
+        [InlineData(12000, 16.67)]
+        [InlineData(40000, 483.33)]
+        [InlineData(45000, 600)]
+        [InlineData(50000, 766.67)]
+        [InlineData(60000, 1100)]
+        [InlineData(100000, 2433.33)]
+        [InlineData(105500, 2708.33)]
+        [InlineData(111000, 2983.33)]
+        [InlineData(122000, 3533.33)]
+        [InlineData(130000, 3800)]
+        [InlineData(150000, 4466.67)]
+        [InlineData(160000, 4841.67)]
+        public void Tax_payable(decimal annualGrossSalary, decimal expected)
+        {
+            var actual = new TaxCalculator().TaxPayable(CreateEmployee(annualGrossSalary));
+            Assert.Equal(expected, actual);
+        }
+
         private static Employee CreateEmployee(decimal annualGrossSalary)
         {
             return new Employee(1, "Foo", annualGrossSalary);

@@ -55,6 +55,108 @@ public class TaxCalculator
         }
         return Math.Round((employee.AnnualGrossSalary - taxFreeAllowance) / MonthsInYear, 2);
     }
+
+    public decimal TaxPayable(Employee employee)
+    {
+        var result = GetRateBands().Sum(x => x.Calculate(employee.AnnualGrossSalary));
+        return Math.Round(result / MonthsInYear, 2);
+    }
+
+    private static List<IRateBand> GetRateBands()
+    {
+        return new List<IRateBand>
+        {
+            new BasicRateBand(),
+            new HigherRateBand(),
+            new AdditionalRateBand()
+        };
+    }
+}
+
+public interface IRateBand
+{
+    decimal Calculate(decimal salary);
+}
+
+public class BasicRateBand : IRateBand
+{
+    const decimal LowerThreshold = 11000M;
+    const decimal UpperThreshold = 43000M;
+    const decimal Rate = 0.2M;
+
+    public decimal Calculate(decimal salary)
+    {
+        if (salary <= LowerThreshold)
+        {
+            return 0;
+        }
+
+        return GetTaxableAmount(salary) * Rate;
+    }
+
+    private static decimal GetTaxableAmount(decimal salary)
+    {
+        var higher = salary - UpperThreshold;
+        higher = higher < 0 ? 0 : higher;
+
+        return salary - higher - LowerThreshold;
+    }
+}
+
+public class HigherRateBand : IRateBand
+{
+    const decimal LowerThreshold = 43000M;
+    const decimal UpperThreshold = 150000M;
+    const decimal Rate = 0.4M;
+
+    public decimal Calculate(decimal salary)
+    {
+        if (salary <= LowerThreshold)
+        {
+            return 0;
+        }
+
+        return GetTaxableAmount(salary) * Rate;
+    }
+
+    private static decimal GetTaxableAmount(decimal salary)
+    {
+        var higher = salary - UpperThreshold;
+        higher = higher < 0 ? 0 : higher;
+
+        return salary - higher - LowerThreshold + GetAdditionalExcess(salary);
+    }
+
+    private static decimal GetAdditionalExcess(decimal salary)
+    {
+        if (salary <= 100000)
+        {
+            return 0;
+        }
+        var result = (salary - 100000) / 2;
+        return result < 11000 ? result : 11000;
+    }
+}
+
+public class AdditionalRateBand : IRateBand
+{
+    const decimal Threshold = 150000M;
+    const decimal Rate = 0.45M;
+
+    public decimal Calculate(decimal salary)
+    {
+        if (salary <= Threshold)
+        {
+            return 0;
+        }
+
+        return GetTaxableAmount(salary) * Rate;
+    }
+
+    private static decimal GetTaxableAmount(decimal salary)
+    {
+        return salary - Threshold;
+    }
 }
 
 public interface ITaxFreeAllowance
