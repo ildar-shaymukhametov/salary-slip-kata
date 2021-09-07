@@ -11,6 +11,10 @@ namespace test
             Assert.Equal(1, result.EmployeeId);
             Assert.Equal("Foo", result.EmployeeName);
             Assert.Equal("£416.67", result.GrossSalary);
+            Assert.Equal("£0.00", result.NiContributions);
+            Assert.Equal("£916.67", result.TaxFreeAllowance);
+            Assert.Equal("£0.00", result.TaxableIncome);
+            Assert.Equal("£0.00", result.TaxPayable);
         }
 
         [Fact]
@@ -20,6 +24,9 @@ namespace test
             var result = new SalarySlipGenerator().GenerateFor(CreateEmployee(AnnualGrossSalary));
             Assert.Equal("£755.00", result.GrossSalary);
             Assert.Equal("£10.00", result.NiContributions);
+            Assert.Equal("£916.67", result.TaxFreeAllowance);
+            Assert.Equal("£0.00", result.TaxableIncome);
+            Assert.Equal("£0.00", result.TaxPayable);
         }
 
         [Fact]

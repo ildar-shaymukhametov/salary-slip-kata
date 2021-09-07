@@ -1,27 +1,27 @@
 public class Salary
 {
-    private readonly decimal amount;
+    public decimal Amount { get; }
 
     public Salary(decimal amount)
     {
-        this.amount = amount;
+        this.Amount = amount;
     }
 
     public decimal CalculateTaxableIncome()
     {
-        return Math.Max(0, amount - CalculateTaxFreeAllowance());
+        return Math.Max(0, Amount - CalculateTaxFreeAllowance());
     }
 
     public decimal CalculateTaxFreeAllowance()
     {
         var result = 0M;
-        if (amount <= 100000)
+        if (Amount <= 100000)
         {
             result = 11000;
         }
-        if (amount > 100000 && amount <= 122000)
+        if (Amount > 100000 && Amount <= 122000)
         {
-            result = 11000 - (amount - 100000) / 2;
+            result = 11000 - (Amount - 100000) / 2;
         }
 
         return result;
@@ -29,53 +29,59 @@ public class Salary
 
     public decimal CalculateTaxPayable()
     {
-        var result = 0M;
-        if (amount > 150000)
+        return new ITaxBand[]
         {
-            result += GetAdditionalTax(amount);
+            new BasicTaxBand(),
+            new HigherTaxBand(),
+            new AdditionalTaxBand()
         }
-        if (amount > 43000)
-        {
-            result += GetHigherTax(amount);
-        }
-        if (amount > 11000)
-        {
-            result += GetBasicTax(amount);
-        }
-
-        return result;
-    }
-
-    private static decimal GetBasicTax(decimal amount)
-    {
-        var taxable = (Math.Min(amount - 11000, 43000 - 11000));
-        return taxable * 0.2M;
-    }
-
-    private decimal GetHigherTax(decimal amount)
-    {
-        var taxable = Math.Min(amount - 43000, 150000 - 43000) + (11000 - CalculateTaxFreeAllowance());
-        return taxable * 0.4M;
-    }
-
-    private static decimal GetAdditionalTax(decimal amount)
-    {
-        var taxable = amount - 150000;
-        return taxable * 0.45M;
+        .Sum(x => x.Calculate(this));
     }
 
     public decimal CalculateNiContributions()
     {
         var result = 0M;
-        if (amount > 43000)
+        if (Amount > 43000)
         {
-            result += (amount - 43000) * 0.02M;
+            result += (Amount - 43000) * 0.02M;
         }
-        if (amount > 8060)
+        if (Amount > 8060)
         {
-            result += Math.Min(amount - 8060, 43000 - 8060) * 0.12M;
+            result += Math.Min(Amount - 8060, 43000 - 8060) * 0.12M;
         }
 
         return result;
+    }
+}
+
+public interface ITaxBand
+{
+    decimal Calculate(Salary salary);
+}
+
+public class BasicTaxBand : ITaxBand
+{
+    public decimal Calculate(Salary salary)
+    {
+        var taxable = Math.Min(salary.Amount - 11000, 43000 - 11000);
+        return Math.Max(0, taxable) * 0.2M;
+    }
+}
+
+public class HigherTaxBand : ITaxBand
+{
+    public decimal Calculate(Salary salary)
+    {
+        var taxable = Math.Min(salary.Amount - 43000, 150000 - 43000) + (11000 - salary.CalculateTaxFreeAllowance());
+        return Math.Max(0, taxable) * 0.4M;
+    }
+}
+
+public class AdditionalTaxBand : ITaxBand
+{
+    public decimal Calculate(Salary salary)
+    {
+        var taxable = salary.Amount - 150000;
+        return Math.Max(0, taxable) * 0.45M;
     }
 }
