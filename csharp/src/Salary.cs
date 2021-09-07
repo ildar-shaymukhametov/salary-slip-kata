@@ -59,29 +59,44 @@ public interface ITaxBand
     decimal Calculate(Salary salary);
 }
 
-public class BasicTaxBand : ITaxBand
+public abstract class TaxBand : ITaxBand
 {
-    public decimal Calculate(Salary salary)
+    protected abstract decimal LowerLimit { get; }
+    protected abstract decimal UpperLimit { get; }
+    protected abstract decimal Rate { get; }
+
+    public virtual decimal Calculate(Salary salary)
     {
-        var taxable = Math.Min(salary.Amount - 11000, 43000 - 11000);
-        return Math.Max(0, taxable) * 0.2M;
+        var maxAmount = UpperLimit - LowerLimit;
+        var currentAmount = salary.Amount - LowerLimit;
+        var amount = Math.Min(currentAmount, maxAmount);
+        return Math.Max(amount * Rate, 0);
     }
 }
 
-public class HigherTaxBand : ITaxBand
+public class BasicTaxBand : TaxBand
 {
-    public decimal Calculate(Salary salary)
+    protected override decimal LowerLimit => 11000;
+    protected override decimal UpperLimit => 43000;
+    protected override decimal Rate => 0.2M;
+}
+
+public class HigherTaxBand : TaxBand
+{
+    protected override decimal LowerLimit => 43000;
+    protected override decimal UpperLimit => 150000;
+    protected override decimal Rate => 0.4M;
+
+    public override decimal Calculate(Salary salary)
     {
-        var taxable = Math.Min(salary.Amount - 43000, 150000 - 43000) + (11000 - salary.CalculateTaxFreeAllowance());
-        return Math.Max(0, taxable) * 0.4M;
+        var extra = (11000 - salary.CalculateTaxFreeAllowance()) * Rate;
+        return extra + base.Calculate(salary);
     }
 }
 
-public class AdditionalTaxBand : ITaxBand
+public class AdditionalTaxBand : TaxBand
 {
-    public decimal Calculate(Salary salary)
-    {
-        var taxable = salary.Amount - 150000;
-        return Math.Max(0, taxable) * 0.45M;
-    }
+    protected override decimal LowerLimit => 150000;
+    protected override decimal UpperLimit => decimal.MaxValue;
+    protected override decimal Rate => 0.45M;
 }
