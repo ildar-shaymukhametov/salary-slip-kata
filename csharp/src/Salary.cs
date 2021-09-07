@@ -29,7 +29,7 @@ public class Salary
 
     public decimal CalculateTaxPayable()
     {
-        return new ITaxBand[]
+        return new IContributions[]
         {
             new BasicTaxBand(),
             new HigherTaxBand(),
@@ -40,7 +40,7 @@ public class Salary
 
     public decimal CalculateNiContributions()
     {
-        return new ITaxBand[]
+        return new IContributions[]
         {
             new BasicContributions(),
             new HigherContributions(),
@@ -49,12 +49,12 @@ public class Salary
     }
 }
 
-public interface ITaxBand
+public interface IContributions
 {
     decimal Calculate(Salary salary);
 }
 
-public abstract class TaxBand : ITaxBand
+public abstract class Contributions : IContributions
 {
     protected abstract decimal LowerLimit { get; }
     protected abstract decimal UpperLimit { get; }
@@ -69,28 +69,28 @@ public abstract class TaxBand : ITaxBand
     }
 }
 
-public class BasicContributions : TaxBand
+public class BasicContributions : Contributions
 {
     protected override decimal LowerLimit => 8060;
     protected override decimal UpperLimit => 43000;
     protected override decimal Rate => 0.12M;
 }
 
-public class HigherContributions : TaxBand
+public class HigherContributions : Contributions
 {
     protected override decimal LowerLimit => 43000;
     protected override decimal UpperLimit => decimal.MaxValue;
     protected override decimal Rate => 0.02M;
 }
 
-public class BasicTaxBand : TaxBand
+public class BasicTaxBand : Contributions
 {
     protected override decimal LowerLimit => 11000;
     protected override decimal UpperLimit => 43000;
     protected override decimal Rate => 0.2M;
 }
 
-public class HigherTaxBand : TaxBand
+public class HigherTaxBand : Contributions
 {
     protected override decimal LowerLimit => 43000;
     protected override decimal UpperLimit => 150000;
@@ -103,7 +103,7 @@ public class HigherTaxBand : TaxBand
     }
 }
 
-public class AdditionalTaxBand : TaxBand
+public class AdditionalTaxBand : Contributions
 {
     protected override decimal LowerLimit => 150000;
     protected override decimal UpperLimit => decimal.MaxValue;
