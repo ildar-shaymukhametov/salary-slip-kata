@@ -32,21 +32,36 @@ public class Salary
         var result = 0M;
         if (amount > 150000)
         {
-            var taxable = amount - 150000;
-            result += taxable * 0.45M;
+            result += GetAdditionalTax(amount);
         }
         if (amount > 43000)
         {
-            var taxable = Math.Min(amount - 43000, 150000 - 43000) + (11000 - CalculateTaxFreeAllowance());
-            result += taxable * 0.4M;
+            result += GetHigherTax(amount);
         }
         if (amount > 11000)
         {
-            var taxable = Math.Min(amount - 11000, 43000 - 11000);
-            result += taxable * 0.2M;
+            result += GetBasicTax(amount);
         }
 
         return result;
+    }
+
+    private static decimal GetBasicTax(decimal amount)
+    {
+        var taxable = (Math.Min(amount - 11000, 43000 - 11000));
+        return taxable * 0.2M;
+    }
+
+    private decimal GetHigherTax(decimal amount)
+    {
+        var taxable = Math.Min(amount - 43000, 150000 - 43000) + (11000 - CalculateTaxFreeAllowance());
+        return taxable * 0.4M;
+    }
+
+    private static decimal GetAdditionalTax(decimal amount)
+    {
+        var taxable = amount - 150000;
+        return taxable * 0.45M;
     }
 
     public decimal CalculateNiContributions()
