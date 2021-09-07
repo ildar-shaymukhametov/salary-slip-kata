@@ -40,17 +40,12 @@ public class Salary
 
     public decimal CalculateNiContributions()
     {
-        var result = 0M;
-        if (Amount > 43000)
+        return new ITaxBand[]
         {
-            result += (Amount - 43000) * 0.02M;
+            new BasicContributions(),
+            new HigherContributions(),
         }
-        if (Amount > 8060)
-        {
-            result += Math.Min(Amount - 8060, 43000 - 8060) * 0.12M;
-        }
-
-        return result;
+        .Sum(x => x.Calculate(this));
     }
 }
 
@@ -72,6 +67,20 @@ public abstract class TaxBand : ITaxBand
         var amount = Math.Min(currentAmount, maxAmount);
         return Math.Max(amount * Rate, 0);
     }
+}
+
+public class BasicContributions : TaxBand
+{
+    protected override decimal LowerLimit => 8060;
+    protected override decimal UpperLimit => 43000;
+    protected override decimal Rate => 0.12M;
+}
+
+public class HigherContributions : TaxBand
+{
+    protected override decimal LowerLimit => 43000;
+    protected override decimal UpperLimit => decimal.MaxValue;
+    protected override decimal Rate => 0.02M;
 }
 
 public class BasicTaxBand : TaxBand
