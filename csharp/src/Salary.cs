@@ -34,23 +34,36 @@ public class Salary
 
     public decimal CalculateTaxPayable()
     {
-        return new IContributions[]
+        var contributions = new List<IContributions>();
+        if (Amount > 11000)
         {
-            new BasicTaxBand(),
-            new HigherTaxBand(),
-            new AdditionalTaxBand()
+            contributions.Add(new BasicRate());
         }
-        .Sum(x => x.Calculate(this));
+        if (Amount > 43000)
+        {
+            contributions.Add(new HigherRate());
+        }
+        if (Amount > 150000)
+        {
+            contributions.Add(new AdditionalRate());
+        }
+
+        return contributions.Sum(x => x.Calculate(this));
     }
 
     public decimal CalculateNiContributions()
     {
-        return new IContributions[]
+        var contributions = new List<IContributions>();
+        if (Amount > 8060)
         {
-            new BasicContributions(),
-            new HigherContributions(),
+            contributions.Add(new BasicContributions());
         }
-        .Sum(x => x.Calculate(this));
+        if (Amount > 43000)
+        {
+            contributions.Add(new HigherContributions());
+        }
+
+        return contributions.Sum(x => x.Calculate(this));
     }
 }
 
@@ -87,58 +100,59 @@ public interface IContributions
     decimal Calculate(Salary salary);
 }
 
-public abstract class Contributions : IContributions
+public class BasicContributions : IContributions
 {
-    protected abstract decimal LowerLimit { get; }
-    protected abstract decimal UpperLimit { get; }
-    protected abstract decimal Rate { get; }
+    private const decimal Rate = 0.12M;
+    private const decimal Max = 34940;
+    private const decimal ContributionFreeAllowance = 8060;
 
-    public virtual decimal Calculate(Salary salary)
+    public decimal Calculate(Salary salary)
     {
-        var maxAmount = UpperLimit - LowerLimit;
-        var currentAmount = salary.Amount - LowerLimit;
-        var amount = Math.Min(currentAmount, maxAmount);
-        return Math.Max(amount * Rate, 0);
+        return Math.Min(salary.Amount - ContributionFreeAllowance, Max) * Rate;
     }
 }
 
-public class BasicContributions : Contributions
+public class HigherContributions : IContributions
 {
-    protected override decimal LowerLimit => 8060;
-    protected override decimal UpperLimit => 43000;
-    protected override decimal Rate => 0.12M;
-}
+    private const decimal Rate = 0.02M;
+    private const decimal Max = 43000;
 
-public class HigherContributions : Contributions
-{
-    protected override decimal LowerLimit => 43000;
-    protected override decimal UpperLimit => decimal.MaxValue;
-    protected override decimal Rate => 0.02M;
-}
-
-public class BasicTaxBand : Contributions
-{
-    protected override decimal LowerLimit => 11000;
-    protected override decimal UpperLimit => 43000;
-    protected override decimal Rate => 0.2M;
-}
-
-public class HigherTaxBand : Contributions
-{
-    protected override decimal LowerLimit => 43000;
-    protected override decimal UpperLimit => 150000;
-    protected override decimal Rate => 0.4M;
-
-    public override decimal Calculate(Salary salary)
+    public decimal Calculate(Salary salary)
     {
-        var extra = (11000 - salary.CalculateTaxFreeAllowance()) * Rate;
-        return extra + base.Calculate(salary);
+        return (salary.Amount - Max) * Rate;
     }
 }
 
-public class AdditionalTaxBand : Contributions
+public class BasicRate : IContributions
 {
-    protected override decimal LowerLimit => 150000;
-    protected override decimal UpperLimit => decimal.MaxValue;
-    protected override decimal Rate => 0.45M;
+    private const decimal Rate = 0.2M;
+    private const decimal Max = 32000;
+
+    public decimal Calculate(Salary salary)
+    {
+        return Math.Min(salary.CalculateTaxableIncome(), Max) * Rate;
+    }
+}
+
+public class HigherRate : IContributions
+{
+    private const decimal Rate = 0.4M;
+    private const decimal Max = 118000;
+    private const int AlreadyTaxed = 32000;
+
+    public decimal Calculate(Salary salary)
+    {
+        return Math.Min(salary.CalculateTaxableIncome() - AlreadyTaxed, Max) * Rate;
+    }
+}
+
+public class AdditionalRate : IContributions
+{
+    private const decimal Rate = 0.45M;
+    private const int AlreadyTaxed = 150000;
+
+    public decimal Calculate(Salary salary)
+    {
+        return (salary.CalculateTaxableIncome() - AlreadyTaxed) * Rate;
+    }
 }
