@@ -14,14 +14,19 @@ public class Salary
 
     public decimal CalculateTaxFreeAllowance()
     {
-        var result = 0M;
-        if (Amount <= 100000)
+        return GetPersonalAllowance().Get();
+    }
+
+    private IPersonalAllowance GetPersonalAllowance()
+    {
+        IPersonalAllowance result;
+        if (Amount > 100000)
         {
-            result = 11000;
+            result = new ReducedPersonalAllowance(new DefaultPersonalAllowance(), this);
         }
-        if (Amount > 100000 && Amount <= 122000)
+        else
         {
-            result = 11000 - (Amount - 100000) / 2;
+            result = new DefaultPersonalAllowance();
         }
 
         return result;
@@ -46,6 +51,34 @@ public class Salary
             new HigherContributions(),
         }
         .Sum(x => x.Calculate(this));
+    }
+}
+
+public interface IPersonalAllowance
+{
+    decimal Get();
+}
+
+public class DefaultPersonalAllowance : IPersonalAllowance
+{
+    public decimal Get() => 11000;
+}
+
+public class ReducedPersonalAllowance : IPersonalAllowance
+{
+    private readonly IPersonalAllowance defaultAllowance;
+    private readonly Salary salary;
+
+    public ReducedPersonalAllowance(IPersonalAllowance defaultAllowance, Salary salary)
+    {
+        this.defaultAllowance = defaultAllowance;
+        this.salary = salary;
+    }
+
+    public decimal Get()
+    {
+        var result = defaultAllowance.Get() - (salary.Amount - 100000) / 2;
+        return Math.Max(0, result);
     }
 }
 
