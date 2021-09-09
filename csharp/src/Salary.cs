@@ -33,6 +33,7 @@ public class Salary
     {
         var amount = CalculateTaxableIncome();
         var result = 0M;
+
         if (Amount > 11000)
         {
             var taxable = amount;
@@ -65,6 +66,7 @@ public class Salary
     {
         var amount = GetContributableIncome();
         var result = 0M;
+
         if (Amount > 8060)
         {
             var taxable = amount;
