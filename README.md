@@ -171,6 +171,6 @@ Calculation rules:
 
 ## Details on calculation rules
 
-The [DETAILS.md](DETAILS.md) file contains a condensed version of the calculation rules with more examples and links to additional resources.
+The [https://github.com/codurance/SalarySlipKata/blob/master/DETAILS.md](DETAILS.md) file contains a condensed version of the calculation rules with more examples and links to additional resources.
 
 You do not need to read it to complete the Kata, but it is provided to you as an extra help.
