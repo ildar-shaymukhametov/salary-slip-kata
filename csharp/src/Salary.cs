@@ -15,18 +15,18 @@ public class Salary
     public decimal CalculateTaxFreeAllowance()
     {
         const decimal PersonalAllowance = 11000;
+        var result = 0M;
+
         if (Amount > 100000 && Amount <= 122000)
         {
-            return PersonalAllowance - (Amount - 100000) / 2;
+            result = PersonalAllowance - (Amount - 100000) / 2;
         }
         else if (Amount < 100000)
         {
-            return PersonalAllowance;
+            result = PersonalAllowance;
         }
-        else
-        {
-            return 0;
-        }
+
+        return result;
     }
 
     public decimal CalculateTaxPayable()
